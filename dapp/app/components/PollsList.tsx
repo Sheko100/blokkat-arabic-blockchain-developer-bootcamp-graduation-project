@@ -3,6 +3,7 @@ import Poll from './Poll.tsx';
 import { readFromContract, writeToContract } from '../common/contractOperations.ts';
 import { useWriteContract } from 'wagmi';
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 /**
  * YOU WERE HERE
@@ -59,7 +60,10 @@ function PollsList() {
       await writeToContract(writeContractAsync, 'deletePoll', [pollId])
 
       setPolls((prev) => prev.filter(poll => poll.id !== pollId));
+
+      toast.success(`Poll has been deleted successfully`);
     } catch(error) {
+      toast.error(`Failed to delete poll: ${error.shortMessage}`);
       console.error("Poll Deletion Error:", error.message);
     }
   }
@@ -93,7 +97,6 @@ function PollsList() {
   return (
     <div className="ml-[25%] p-8">
       <CreatePoll onCreatePoll={handleNewPoll} pollLastId={lastId} />
-      here should be a list of polls
       <div>{renderedPolls}</div>
     </div>
   )

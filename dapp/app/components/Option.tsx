@@ -1,6 +1,5 @@
 function Option({id, label, selected = false, onSelect, disabled = false, votesCount, showVotes}) {
 
-  console.log('showVote', showVotes);
   return (
     <button
       className={`

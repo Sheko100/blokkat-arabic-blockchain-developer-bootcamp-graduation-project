@@ -5,6 +5,7 @@ import { useWriteContract } from 'wagmi';
 import { writeToContract, readFromContract } from '../common/contractOperations.ts';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { useState, useEffect } from "react";
+import toast from 'react-hot-toast';
 
 
 function Poll({title, owner, id, votesCount, selectedOption, options, duration, onDeletion}) {
@@ -57,8 +58,11 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
 
       setIsPollLocked(true);
 
+      toast.success(`Vote has been registered successfuly`);
+
     } catch(error) {
-      console.error('Voting Error', error.message);
+      toast.error(`Failed to apply the vote: ${error.message}`);
+      console.error('Failed to apply the vote', error.message);
       setIsPollLocked(false);
       setSelectedOptionId(0);
       setWalletPending(false);

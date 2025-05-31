@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useWriteContract } from 'wagmi';
-import { waitForTransactionReceipt } from '@wagmi/core';
 import { writeToContract } from '../common/contractOperations.ts';
 import { useAppKitAccount } from '@reown/appkit/react';
+import toast from 'react-hot-toast';
 
 export default function CreatePoll({ onCreatePoll, pollLastId}) {
   const [showModal, setShowModal] = useState(false);
@@ -60,11 +60,6 @@ export default function CreatePoll({ onCreatePoll, pollLastId}) {
       // add poll on contract
       await writeToContract(writeContractAsync, 'createNewPoll', args);
 
-      console.log('transaction hash from the hook return', hash);
-
-      // wait for the transaction receipt
-      //await waitForTransactionReceipt({ hash: hash });
-
       const durationInSeconds = numberOfDays * 60 * 60 * 24;
 
       const newPoll = {
@@ -78,8 +73,11 @@ export default function CreatePoll({ onCreatePoll, pollLastId}) {
 
       onCreatePoll(newPoll);
 
+      toast.success(`Poll has been created successfully`);
+
     } catch(error) {
-      console.error("Error:", error.message);
+      toast.error(`Failed to create the poll: ${error.shortMessage}`);
+      console.error("Poll Creation Error:", error.message);
     } finally {
       setPendingWallet(false);
       closeModal();
