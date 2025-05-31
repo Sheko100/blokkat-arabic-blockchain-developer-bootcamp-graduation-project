@@ -1,8 +1,10 @@
 import Option from './Option.tsx';
 import PollBar from './PollBar.tsx';
 import ConfirmModal from './ConfirmModal.tsx';
+import { wagmiContractConfig } from '../common/contracts';
 import { useWriteContract } from 'wagmi';
-import { writeToContract, readFromContract } from '../common/contractOperations.ts';
+import { readContract } from '@wagmi/core';
+import { writeToContract } from '../common/contractOperations.ts';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { useState, useEffect } from "react";
 import toast from 'react-hot-toast';
@@ -94,17 +96,31 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
   }
 
   const getOptionVotes = async () => {
-    const optionVotesObjs = [];
+    const count = await Promise.all(
+          options.map((_, i) =>
+            readContract({
+              ...wagmiContractConfig,
+              functionName: 'getOptionVotes',
+              args: [id, i + 1],
+            })
+          )
+    );
 
-    options.forEach((option, i) =>{
+    const optionVotesObjs = options.map((label, i) => ({
+          label,
+          id: i + 1,
+          votesCount: Number(count[i] || 0),
+    }));
+
+   /* options.forEach((option, i) =>{
       const optionId = i + 1;
       const {data: votesCount, isError: votesCountError, refetch: refetchVotesCount} = readFromContract('getOptionVotes', [id, optionId]);
 
-      if (typeof votesCount === 'integer') {
+      if (votesCount && Number.isInteger(votesCount)) {
         optionVotesObjs[i] = {label: option, id: optionId, votesCount: votesCount};
       }
 
-    });
+    });*/
 
     return optionVotesObjs;
   }
