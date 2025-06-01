@@ -17,6 +17,7 @@ contract VotingSystemTest is Test {
         vm.deal(address(this), 1 ether);
     }
     
+    /// tests that all created polls are returned even if they are deleted or ended  
     function test_getAllPolls() public {
         voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
         uint32 firstPollId;
@@ -28,6 +29,7 @@ contract VotingSystemTest is Test {
         assertEq(allPolls.length, voting.allPollsCount());
     }
     
+    /// tests that only the active polls are returned
     function test_getActivePollsWhileAllAreActive() public {
         voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
 
@@ -39,6 +41,7 @@ contract VotingSystemTest is Test {
         
     }
 
+    /// tests that the poll creation increase the count of the active polls
     function test_increasedActivePollsCount() public {
         uint32 currCount = voting.activePollsCount();
 
@@ -47,6 +50,7 @@ contract VotingSystemTest is Test {
         assertEq(voting.activePollsCount(), currCount + 1);
     }
 
+    /// tests that the poll creation increase the count of all the polls
     function test_increasedAllPollsCount() public {
         uint32 currCount = voting.allPollsCount();
 
@@ -55,6 +59,7 @@ contract VotingSystemTest is Test {
         assertEq(voting.allPollsCount(), currCount + 1);
     }
 
+    /// tests that the poll owner is assigned correctly
     function test_pollOwnerAssigned() public {
         uint32 pollId = voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
         address owner;
@@ -64,6 +69,7 @@ contract VotingSystemTest is Test {
         assertEq(owner, address(this));
     }
     
+    /// tests that deleting the poll is working as expected
     function test_deletePoll() public {
         uint32 pollOneId = voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
         uint32 pollTwoId = voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
@@ -100,7 +106,8 @@ contract VotingSystemTest is Test {
         
         assertEq(newVotesCount, oldVotesCount + 1);
     }
-    
+
+    /// tests that the voting is working as expected
     function test_addedUserVote() public {
         uint32 pollId = voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
         uint32 optionId = 1;
@@ -117,7 +124,8 @@ contract VotingSystemTest is Test {
         assertEq(firstVote[1], optionId);
         
     }
-    
+
+    /// tests that the voting has increased the votes count
     function test_increasedUserVotes() public {
       uint32 pollId = voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
       uint32[2][] memory userVotes;
@@ -128,7 +136,8 @@ contract VotingSystemTest is Test {
 
       assertEq(userVotes.length, 1);
     }
-    
+
+    /// tests that the voting has increased the option votes    
     function test_increasedOptionVotes() public {
         uint32 pollId = voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
         uint32 optionVotes;
@@ -141,7 +150,8 @@ contract VotingSystemTest is Test {
         
         assertEq(optionVotes, 1);
     }
-    
+
+      /// tests that getting the option votes should revert if the poll has not ended yet
       function test_RevertIf_PollHasNotEnded() public {
       uint32 pollId = voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
       uint32 optionVotes;
@@ -151,7 +161,8 @@ contract VotingSystemTest is Test {
       optionVotes = voting.getOptionVotes(pollId, 0);
       
     }
-    
+
+    /// tests that voting should happen only once by one user
     function test_RevertIf_tryingToVoteSecondTime() public {
         uint32 pollId = voting.createNewPoll{value: amountInWei}(title, threeOptions, duration);
         
