@@ -3,6 +3,7 @@ import Poll from './Poll.tsx';
 import { readFromContract, writeToContract } from '../common/contractOperations.ts';
 import { useWriteContract } from 'wagmi';
 import { useState, useEffect } from 'react';
+import { useAppKitAccount, useAppKitBalance } from '@reown/appkit/react';
 import toast from 'react-hot-toast';
 
 /**
@@ -23,6 +24,7 @@ function PollsList() {
   const [polls, setPolls] = useState([]);
   const [lastId, setLastId] = useState(0);
   const [userVotes, setUserVotes] = useState([]);
+  const [balance, setBalance] = useState();
 
   const {data: pollsData, isError: activePollsError, refetch: refetchPolls} = readFromContract('getActivePolls');
   // all polls count not only the active ones
@@ -33,7 +35,11 @@ function PollsList() {
 
   const { data: hash, error: writeError, isPending, writeContractAsync } = useWriteContract();
 
+  const { fetchBalance } = useAppKitBalance();
+
+
   useEffect(() => {
+
     if (pollsData) {
       setPolls(pollsData);
     }
@@ -46,7 +52,7 @@ function PollsList() {
       setUserVotes(userVotesData);
     }
 
-  }, [pollsData, lastIdData, userVotesData]);
+  }, [pollsData, lastIdData, userVotesData, fetchBalance]);
 
   const handleNewPoll = (newPoll) => {
     setPolls((prev) => [...prev, newPoll]);
@@ -57,13 +63,21 @@ function PollsList() {
     // delete the poll from the chain
 
     try {
-      await writeToContract(writeContractAsync, 'deletePoll', [pollId])
+      const etherAmount = '0.000000001';
+
+      const balance = await fetchBalance();
+
+      if (Number(etherAmount) > Number(balance.data['balance'])) {
+        throw new Error('Balance is insuffucient for this operation');
+      }
+
+      await writeToContract(writeContractAsync, 'deletePoll', [pollId], etherAmount);
 
       setPolls((prev) => prev.filter(poll => poll.id !== pollId));
 
       toast.success(`Poll has been deleted successfully`);
     } catch(error) {
-      toast.error(`Failed to delete poll: ${error.shortMessage}`);
+      toast.error(`Failed to delete poll: ${error.shortMessage || error.message}`);
       console.error("Poll Deletion Error:", error.message);
     }
   }

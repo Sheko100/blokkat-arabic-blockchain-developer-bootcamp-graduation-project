@@ -1,5 +1,5 @@
 export const wagmiContractConfig = {
-  address: '0x1419fE1CB72920084939bFE02a25D9Eaf6f5a4a2',
+  address: '0x66e54F78FbD565b1D0fC2f1FcCF832c8F4529B55',
   abi: [
   {
     "type": "constructor",
@@ -196,19 +196,6 @@ export const wagmiContractConfig = {
   },
   {
     "type": "function",
-    "name": "getRawUserVotes",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint32[2][]",
-        "internalType": "uint32[2][]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getUserVotes",
     "inputs": [],
     "outputs": [
@@ -216,19 +203,6 @@ export const wagmiContractConfig = {
         "name": "",
         "type": "uint32[2][]",
         "internalType": "uint32[2][]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getUserVotesLength",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"

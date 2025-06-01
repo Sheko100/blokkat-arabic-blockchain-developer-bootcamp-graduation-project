@@ -5,8 +5,9 @@ import { wagmiContractConfig } from '../common/contracts';
 import { useWriteContract } from 'wagmi';
 import { readContract } from '@wagmi/core';
 import { writeToContract } from '../common/contractOperations.ts';
-import { useAppKitAccount } from '@reown/appkit/react';
+import { useAppKitAccount, useAppKitBalance } from '@reown/appkit/react';
 import { useState, useEffect } from "react";
+import { config } from '../../config/index.tsx';
 import toast from 'react-hot-toast';
 
 
@@ -25,14 +26,19 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [walletPending, setWalletPending] = useState(false);
   const { address } = useAppKitAccount();
+  const { fetchBalance } = useAppKitBalance();
 
   useEffect(() => {
     setIsPollLocked(selectedOptionId > 0);
 
     if (isPollEnded) {
+
+      handlePollEnded();
+
+      if (optionObjs.length > 0) {
+        setTopOption(topVotesOption());
+      }
       setIsPollstatus('ended');
-      setOptionObjs(getOptionVotes());
-      setTopOption(topVotesOption());
     } else if (isPollLocked) {
       setIsPollstatus('locked');
     } else {
@@ -41,7 +47,7 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
 
     document.body.style.overflow = showConfirm || showDeleteConfirm ? 'hidden' : 'auto';
 
-  }, [selectedOptionId, isPollEnded, isPollLocked, showConfirm, showDeleteConfirm]);
+  }, [selectedOptionId, isPollEnded, isPollLocked, showConfirm, showDeleteConfirm, optionObjs]);
 
   const optionSelectionHandler = (optionId) => {
     // should alert the user to confirm that the vote is final
@@ -56,14 +62,22 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
 
       setWalletPending(true);
 
-      await writeToContract(writeContractAsync, 'vote', [id, selectedOptionId]);
+      const etherAmount = '0.0000000005';
+
+      const balance = await fetchBalance();
+
+      if (Number(etherAmount) > Number(balance.data['balance'])) {
+        throw new Error('Balance is insuffucient for this operation');
+      }
+
+      await writeToContract(writeContractAsync, 'vote', [id, selectedOptionId], etherAmount);
 
       setIsPollLocked(true);
 
       toast.success(`Vote has been registered successfuly`);
 
     } catch(error) {
-      toast.error(`Failed to apply the vote: ${error.message}`);
+      toast.error(`Failed to apply the vote: ${error.shortMessage || error.message}`);
       console.error('Failed to apply the vote', error.message);
       setIsPollLocked(false);
       setSelectedOptionId(0);
@@ -82,23 +96,24 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
   const deletionHandler = () => {
     try {
       onDeletion(id);
-      SetwalletPending(true);
+      setWalletPending(true);
     } catch(error) {
-      SetwalletPending(false);
+      setShowDeleteConfirm(false);
+      setWalletPending(false);
     } finally {
-      SetwalletPending(false);
+      setWalletPending(false);
     }
   };
 
   const deletionCancel = () => {
     setShowDeleteConfirm(false);
-    SetwalletPending(false);
+    setWalletPending(false);
   }
 
   const getOptionVotes = async () => {
     const count = await Promise.all(
           options.map((_, i) =>
-            readContract({
+            readContract(config, {
               ...wagmiContractConfig,
               functionName: 'getOptionVotes',
               args: [id, i + 1],
@@ -111,16 +126,6 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
           id: i + 1,
           votesCount: Number(count[i] || 0),
     }));
-
-   /* options.forEach((option, i) =>{
-      const optionId = i + 1;
-      const {data: votesCount, isError: votesCountError, refetch: refetchVotesCount} = readFromContract('getOptionVotes', [id, optionId]);
-
-      if (votesCount && Number.isInteger(votesCount)) {
-        optionVotesObjs[i] = {label: option, id: optionId, votesCount: votesCount};
-      }
-
-    });*/
 
     return optionVotesObjs;
   }
@@ -137,25 +142,31 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
     return topOptionObj;
   }
 
+  const handlePollEnded = async () => {
+    const objs = await getOptionVotes();
+    setOptionObjs(objs);
+  }
+
   const renderedOptions = options.map((option, i) => {
 
     let optionVotes = 0;
+    const optionId = i + 1;
     let showVotes = false;
 
     if (isPollEnded) {
-      optionVotes = optionObjs[i].votesCount;
+      optionVotes = optionObjs[i] ? optionObjs[i].votesCount : 10;
       showVotes = true;
 
     }
 
     return (
       <Option 
-        selected={i+1 == selectedOptionId}
-        key={i+1}
-        id={i+1}
+        selected={optionId == selectedOptionId}
+        key={optionId}
+        id={optionId}
         label={option}
         onSelect={optionSelectionHandler}
-        disabled={isPollLocked}
+        disabled={isPollLocked || isPollEnded}
         votesCount={optionVotes}
         showVotes={showVotes}
       />

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useWriteContract } from 'wagmi';
 import { writeToContract } from '../common/contractOperations.ts';
-import { useAppKitAccount } from '@reown/appkit/react';
+import { useAppKitAccount, useAppKitBalance } from '@reown/appkit/react';
 import toast from 'react-hot-toast';
 
 export default function CreatePoll({ onCreatePoll, pollLastId}) {
@@ -14,6 +14,7 @@ export default function CreatePoll({ onCreatePoll, pollLastId}) {
   const [pendingWallet, setPendingWallet] = useState(false);
   const { address } = useAppKitAccount();
   const { data: hash, error: writeError, isPending, writeContractAsync } = useWriteContract();
+  const { fetchBalance } = useAppKitBalance();
 
   useEffect(() => {
     // Lock scroll when modal is open
@@ -49,16 +50,24 @@ export default function CreatePoll({ onCreatePoll, pollLastId}) {
   const confirmPoll = async () => {
     const numberOfDays= parseInt(duration, 10);
     if (isNaN(numberOfDays) || numberOfDays <= 0) {
-      alert('Please enter a valid duration.');
+      toast.error('Please enter a valid duration.');
       return;
     }
 
     try {
 
       setPendingWallet(true);
+      const etherAmount = '0.000000001';
       const args = [title, options, numberOfDays];
       // add poll on contract
-      await writeToContract(writeContractAsync, 'createNewPoll', args);
+
+      const balance = await fetchBalance();
+
+      if (Number(etherAmount) > Number(balance.data['balance'])) {
+        throw new Error('Balance is insuffucient for this operation');
+      }
+
+      await writeToContract(writeContractAsync, 'createNewPoll', args, etherAmount);
 
       const durationInSeconds = numberOfDays * 60 * 60 * 24;
 
@@ -76,7 +85,7 @@ export default function CreatePoll({ onCreatePoll, pollLastId}) {
       toast.success(`Poll has been created successfully`);
 
     } catch(error) {
-      toast.error(`Failed to create the poll: ${error.shortMessage}`);
+      toast.error(`Failed to create the poll: ${error.shortMessage || error.message}`);
       console.error("Poll Creation Error:", error.message);
     } finally {
       setPendingWallet(false);

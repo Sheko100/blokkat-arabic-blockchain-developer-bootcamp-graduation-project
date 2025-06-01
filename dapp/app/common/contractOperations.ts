@@ -1,5 +1,5 @@
-import { useReadContract, useWriteContract } from 'wagmi';
-import { type Abi } from 'viem';
+import { useReadContract, useWriteContract, writeAsync } from 'wagmi';
+import { type Abi, parseEther } from 'viem';
 import { wagmiContractConfig } from './contracts';
 import { useAppKitAccount } from '@reown/appkit/react';
 
@@ -25,11 +25,13 @@ function readFromContract(functionName: ContractReadFunctionName , args: readonl
   return response;
 }
 
-async function writeToContract(contractWrite, functionName: ContractWriteFunctionName , args: readonly any[] = []) {
+async function writeToContract(contractWrite, functionName: ContractWriteFunctionName , args: readonly any[] = [], etherAmount='0.00') {
   await contractWrite({
   	...wagmiContractConfig,
   	functionName: functionName,
   	args: args as unknown as any[],
+    value: parseEther(etherAmount),
+    gas: BigInt(300_000),
   });
 }
 
