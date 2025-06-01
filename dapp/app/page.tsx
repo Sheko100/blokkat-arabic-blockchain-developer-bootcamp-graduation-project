@@ -1,10 +1,14 @@
 import Image from 'next/image';
 import VotingSystem from './components/VotingSystem.tsx';
 import toast, { Toaster } from 'react-hot-toast';
+import Head from 'next/head';
 
 export default function Home() {
   return (
     <>
+      <Head>
+        <title>Welcome to Polly</title>
+      </Head>
       <Toaster/>
       <VotingSystem />
     </>

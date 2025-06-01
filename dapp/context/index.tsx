@@ -16,9 +16,10 @@ if (!projectId) {
 
 // Set up metadata
 const metadata = {
-  name: 'appkit-example',
-  description: 'AppKit Example',
-  url: 'https://voting-dapp-ten-sandy.vercel.app/', // origin must match your domain & subdomain
+  title: 'Welcome to Polly',
+  name: 'Polly',
+  description: 'Voting Decentralized Application',
+  url: 'https://voting-dapp-ten-sandy.vercel.app', // origin must match your domain & subdomain
   icons: ['https://avatars.githubusercontent.com/u/179229932']
 }
 
