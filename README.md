@@ -1,66 +1,39 @@
-## Foundry
+## Project Description
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+**A voting management system Dapp**
 
-Foundry consists of:
+### Directory Structure
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+include a directory tree strucutre here
 
-## Documentation
+## Design Decisions
 
-https://book.getfoundry.sh/
+1. **Inherited OpenZepplin Ownable contract**
 
-## Usage
+Files:
 
-### Build
+- **src/contracts/VotingSystem.sol** (lines: 8 and 52)
 
-```shell
-$ forge build
-```
+2.
 
-### Test
 
-```shell
-$ forge test
-```
+## Security Practices
 
-### Format
+1. **Used 0.8.20 as a specific compiler pragma**
 
-```shell
-$ forge fmt
-```
+Files:
 
-### Gas Snapshots
+- **src/contracts/VotingSystem.sol** (line: 2 )
+- **src/test/VotingSystem.t.sol** (line; 2)
 
-```shell
-$ forge snapshot
-```
 
-### Anvil
+2. **Proper use of Require**
 
-```shell
-$ anvil
-```
+Files:
 
-### Deploy
+- **src/contracts/VotingSystem.sol** (line: 20)
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+3. **Used modifires for validation**
 
-### Cast
+- **src/contracts/VotingSystem.sol** (lines: 85 and 106)
 
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
