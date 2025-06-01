@@ -93,15 +93,16 @@ function Poll({title, owner, id, votesCount, selectedOption, options, duration, 
     setSelectedOptionId(0);
   };
 
-  const deletionHandler = () => {
+  const deletionHandler = async () => {
     try {
-      onDeletion(id);
       setWalletPending(true);
+      await onDeletion(id);
     } catch(error) {
       setShowDeleteConfirm(false);
       setWalletPending(false);
     } finally {
       setWalletPending(false);
+      setShowDeleteConfirm(false);
     }
   };
 

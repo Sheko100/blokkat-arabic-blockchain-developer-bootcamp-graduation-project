@@ -54,9 +54,11 @@ function PollsList() {
 
   }, [pollsData, lastIdData, userVotesData, fetchBalance]);
 
-  const handleNewPoll = (newPoll) => {
-    setPolls((prev) => [...prev, newPoll]);
-    setLastId(newPoll.id);
+  const handleNewPoll = async (newPoll) => {
+    //setPolls((prev) => [...prev, newPoll]);
+    //setLastId(newPoll.id);
+      await refetchPolls(); // refresh from chain
+      await refetchCount();
   };
 
   const handleDeletePoll = async (pollId) => {
@@ -73,7 +75,8 @@ function PollsList() {
 
       await writeToContract(writeContractAsync, 'deletePoll', [pollId], etherAmount);
 
-      setPolls((prev) => prev.filter(poll => poll.id !== pollId));
+      await refetchPolls();
+      await refetchCount();
 
       toast.success(`Poll has been deleted successfully`);
     } catch(error) {
@@ -113,7 +116,7 @@ function PollsList() {
       <CreatePoll onCreatePoll={handleNewPoll} pollLastId={lastId} />
       <div>{renderedPolls}</div>
     </div>
-  )
+  );
 }
 
 export default PollsList;
